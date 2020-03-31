@@ -1,0 +1,19 @@
+
+{
+    "name": "react-native-pdf-to-image",
+    "version": "3.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [
+      "react-native", "pdf-converter", "react-native-pdf"
+    ],
+    "author": "",
+    "license": "",
+    "peerDependencies": {
+      "react-native": "^0.41.2"
+    }
+  }
+  
