@@ -1,17 +1,26 @@
 
 {
     "name": "react-native-pdf-to-image",
-    "version": "3.0.1",
-    "description": "",
+    "version": "3.0.2",
+    "description": "A react native plugin to convert PDF pages to images",
     "main": "index.js",
     "scripts": {
       "test": "echo \"Error: no test specified\" && exit 1"
     },
     "keywords": [
-      "react-native", "pdf-converter", "react-native-pdf"
+      "react-native", "pdf-converter", "react-native-pdf", "pdf-to-png"
     ],
-    "author": "",
-    "license": "",
+    "author": {
+        "email": "ajumalashraf@outlook.com",
+        "name": "Ajumal Ashraf"
+    },
+    "homepage": "https://github.com/ajumal-ashraf-dev/react-native-pdf-to-image#readme",
+    "license": "MIT",
+    "readmeFilename": "README.md",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/ajumal-ashraf-dev/react-native-pdf-to-image.git"
+    },
     "peerDependencies": {
       "react-native": "^0.41.2"
     }
