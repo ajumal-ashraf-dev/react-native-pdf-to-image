@@ -41,7 +41,8 @@ public class RNPdfToImageModule extends ReactContextBaseJavaModule {
     try {
         WritableMap map = Arguments.createMap();
         WritableArray files = Arguments.createArray();
-        Uri path = Uri.parse(pdfUriString);
+        Uri path = Uri.fromFile(new File(pdfUriString));
+        String fileName = pdfUriString.split('/').pop();
 
         ParcelFileDescriptor parcelFileDescriptor = reactContext.getContentResolver().openFileDescriptor(path, "r");
 
@@ -57,7 +58,7 @@ public class RNPdfToImageModule extends ReactContextBaseJavaModule {
             canvas.drawColor(Color.WHITE);
 
             page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
-            File output = this.saveImage(bitmap, reactContext.getCacheDir());
+            File output = this.saveImage(bitmap, reactContext.getCacheDir(), fileName);
             page.close();
 
             files.pushString(output.getAbsolutePath());
@@ -74,8 +75,8 @@ public class RNPdfToImageModule extends ReactContextBaseJavaModule {
     }
   }
 
-  private File saveImage(Bitmap finalBitmap, File cacheDir) {
-    File file = new File(cacheDir.getAbsolutePath() + File.separator + System.currentTimeMillis() + "_pdf.png");
+  private File saveImage(Bitmap finalBitmap, File cacheDir, String fileName) {
+    File file = new File(cacheDir.getAbsolutePath() + File.separator + fileName);
     if (file.exists()) file.delete ();
     try {
         FileOutputStream out = new FileOutputStream(file);
