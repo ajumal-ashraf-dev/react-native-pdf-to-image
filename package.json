@@ -22,6 +22,6 @@
         "url": "git+https://github.com/ajumal-ashraf-dev/react-native-pdf-to-image.git"
     },
     "peerDependencies": {
-      "react-native": "^0.72"
+      "react-native": "^0.72.4"
     }
   }
