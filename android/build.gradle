@@ -14,17 +14,19 @@ buildscript {
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 28
-    buildToolsVersion "28.0.3"
-
     defaultConfig {
+        compileSdk 33
         minSdkVersion 16
-        targetSdkVersion 28
+        targetSdkVersion 33
         versionCode 2
         versionName "2.0"
     }
     lintOptions {
         abortOnError false
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
@@ -39,4 +41,3 @@ repositories {
 dependencies {
     implementation 'com.facebook.react:react-native:+'
 }
-  
