@@ -15,6 +15,7 @@ import android.util.Log;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.module.annotations.ReactModule;
@@ -34,6 +35,8 @@ import java.util.Base64;
 
 @ReactModule(name = PdfToImageModule.NAME)
 public class PdfToImageModule extends ReactContextBaseJavaModule {
+  private ReactApplicationContext context;
+
   public static final String NAME = "PdfToImage";
 
   private static final String E_CONVERT_ERROR = "E_CONVERT_ERROR";
@@ -42,6 +45,7 @@ public class PdfToImageModule extends ReactContextBaseJavaModule {
 
   public PdfToImageModule(ReactApplicationContext reactContext) {
     super(reactContext);
+    this.context = reactContext;
   }
 
   @Override
@@ -56,7 +60,7 @@ public class PdfToImageModule extends ReactContextBaseJavaModule {
           DataOutputStream outToServer = null;
           Socket clientSocket;
           try {
-              File cacheDir = reactContext.getCacheDir();
+              File cacheDir = this.context.getCacheDir();
               File file = File.createTempFile("pdfToImage", "pdf", cacheDir);
               file.setWritable(true);
               FileOutputStream fos = new FileOutputStream(file);
@@ -83,10 +87,6 @@ public class PdfToImageModule extends ReactContextBaseJavaModule {
           } catch (IOException e1) {
               Log.e(TAG, e1.toString(), e1);
               promise.reject(e1.toString(), e1.getLocalizedMessage());
-          } finally {
-              if (outToServer != null) {
-                  outToServer.close();
-              }
           }
       }
 
@@ -96,7 +96,7 @@ public class PdfToImageModule extends ReactContextBaseJavaModule {
               WritableMap map = Arguments.createMap();
               WritableArray files = Arguments.createArray();
 
-              File cacheDir = reactContext.getCacheDir();
+              File cacheDir = this.context.getCacheDir();
               File file = File.createTempFile("pdfToImage", "pdf", cacheDir);
               file.setWritable(true);
               FileOutputStream fos = new FileOutputStream(file);
@@ -117,7 +117,7 @@ public class PdfToImageModule extends ReactContextBaseJavaModule {
                   canvas.drawColor(Color.WHITE);
 
                   page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_PRINT);
-                  File output = this.saveImage(bitmap, reactContext.getCacheDir());
+                  File output = this.saveImage(bitmap, this.context.getCacheDir());
                   page.close();
 
                   files.pushString(output.getAbsolutePath());
@@ -141,9 +141,9 @@ public class PdfToImageModule extends ReactContextBaseJavaModule {
           try {
               WritableMap map = Arguments.createMap();
               WritableArray files = Arguments.createArray();
-              Uri path = Uri.fromFile(new File(pdfUriString));
+              Uri path = Uri.parse(pdfUriString);
 
-              ParcelFileDescriptor parcelFileDescriptor = reactContext.getContentResolver().openFileDescriptor(path, "r");
+              ParcelFileDescriptor parcelFileDescriptor = this.context.getContentResolver().openFileDescriptor(path, "r");
 
               PdfRenderer renderer = new PdfRenderer(parcelFileDescriptor);
 
@@ -157,7 +157,7 @@ public class PdfToImageModule extends ReactContextBaseJavaModule {
                   canvas.drawColor(Color.WHITE);
 
                   page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
-                  File output = this.saveImage(bitmap, reactContext.getCacheDir());
+                  File output = this.saveImage(bitmap, this.context.getCacheDir());
                   page.close();
 
                   files.pushString(output.getAbsolutePath());

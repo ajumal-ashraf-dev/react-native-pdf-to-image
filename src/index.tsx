@@ -17,7 +17,9 @@ const PdfToImage = NativeModules.PdfToImage
       }
     );
 
-export function convert(uri: string): Promise<any[]> {
+export function convert(
+  uri: string
+): Promise<{ outputFiles: string[] | undefined }> {
   return PdfToImage.convert(uri);
 }
 export function convertB64(base64Str: string, dpi: number): Promise<number> {
