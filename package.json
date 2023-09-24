@@ -1,6 +1,6 @@
 {
   "name": "react-native-pdf-to-image",
-  "version": "3.1.4",
+  "version": "3.2.0",
   "description": "A react native plugin to convert PDF pages to images",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
