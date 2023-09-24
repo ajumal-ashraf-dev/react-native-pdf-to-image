@@ -40,7 +40,7 @@ export default function App() {
         {result.length
           ? result.map((imgPath) => {
               return (
-                <View style={styles.imgContainer}>
+                <View key={imgPath} style={styles.imgContainer}>
                   <Text>{`file://${imgPath}`}</Text>
                   <Image
                     style={styles.image}
