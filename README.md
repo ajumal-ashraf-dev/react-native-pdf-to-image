@@ -9,9 +9,10 @@ npm install react-native-pdf-to-image
 
 ## Usage
 ```js
-import RNPdfToImage from 'react-native-pdf-to-image';
+import { convert, convertB64 } from 'react-native-pdf-to-image';
 
-RNPdfToImage.convert(uri);
+const uri = 'file:///data/.........' // Any PDF file uri
+const images = await convert(uri);   // { outputFiles: [' /* image file path in cache */'] }
 ```
 
 ## Contributing
