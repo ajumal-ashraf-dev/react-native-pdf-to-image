@@ -7,6 +7,7 @@ import {
   Button,
   ScrollView,
   Text,
+  SafeAreaView,
 } from 'react-native';
 import DocumentPicker from 'react-native-document-picker';
 import { convert } from 'react-native-pdf-to-image';
@@ -34,9 +35,14 @@ export default function App() {
   };
 
   return (
-    <View style={styles.container}>
-      <Button title={'Select a PDF file'} onPress={handleDocSelect} />
-      <ScrollView style={styles.scrollContainer}>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.ctaContainer}>
+        <Button title={'Select a PDF file'} onPress={handleDocSelect} />
+      </View>
+      <ScrollView
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.scrollContent}
+      >
         {result.length
           ? result.map((imgPath) => {
               return (
@@ -51,24 +57,29 @@ export default function App() {
             })
           : null}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
+    backgroundColor: '#fff',
+  },
+  ctaContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 16,
   },
   scrollContainer: {
     flex: 1,
-    marginTop: 40,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 24,
   },
   imgContainer: {
-    flex: 1,
-    padding: 5,
+    paddingVertical: 8,
   },
   image: {
     width: 200,

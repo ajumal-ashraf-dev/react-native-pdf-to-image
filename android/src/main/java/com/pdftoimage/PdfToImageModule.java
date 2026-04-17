@@ -2,7 +2,6 @@ package com.pdftoimage;
 
 import androidx.annotation.NonNull;
 
-import android.widget.Toast;
 import android.net.Uri;
 
 import android.graphics.Bitmap;
@@ -15,7 +14,6 @@ import android.util.Log;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.module.annotations.ReactModule;
@@ -57,26 +55,30 @@ public class PdfToImageModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
       public void printPDF(String ipAddress, Integer portNumber, String pdfBase64String, Promise promise) {
-          DataOutputStream outToServer = null;
-          Socket clientSocket;
           try {
               File cacheDir = this.context.getCacheDir();
               File file = File.createTempFile("pdfToImage", "pdf", cacheDir);
               file.setWritable(true);
-              FileOutputStream fos = new FileOutputStream(file);
               byte[] decoder = Base64.getDecoder().decode(pdfBase64String);
-              fos.write(decoder);
-
-
-              FileInputStream fileInputStream = new FileInputStream(file);
-              InputStream is = fileInputStream;
-              clientSocket = new Socket(ipAddress, portNumber);
-              outToServer = new DataOutputStream(clientSocket.getOutputStream());
-              byte[] buffer = new byte[3000];
-              while (is.read(buffer) != -1) {
-                  outToServer.write(buffer);
+              try (FileOutputStream fos = new FileOutputStream(file)) {
+                  fos.write(decoder);
               }
-              outToServer.flush();
+
+              try (
+                  FileInputStream fileInputStream = new FileInputStream(file);
+                  InputStream is = fileInputStream;
+                  Socket clientSocket = new Socket(ipAddress, portNumber);
+                  DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream())
+              ) {
+                  byte[] buffer = new byte[3000];
+                  int bytesRead;
+                  while ((bytesRead = is.read(buffer)) != -1) {
+                      outToServer.write(buffer, 0, bytesRead);
+                  }
+                  outToServer.flush();
+              }
+
+              file.delete();
               promise.resolve(1);
           } catch (ConnectException connectException) {
               Log.e(TAG, connectException.toString(), connectException);
@@ -99,37 +101,38 @@ public class PdfToImageModule extends ReactContextBaseJavaModule {
               File cacheDir = this.context.getCacheDir();
               File file = File.createTempFile("pdfToImage", "pdf", cacheDir);
               file.setWritable(true);
-              FileOutputStream fos = new FileOutputStream(file);
               byte[] decoder = Base64.getDecoder().decode(base64String);
-              fos.write(decoder);
+              try (FileOutputStream fos = new FileOutputStream(file)) {
+                  fos.write(decoder);
+              }
 
-              ParcelFileDescriptor parcelFileDescriptor = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
+              try (
+                  ParcelFileDescriptor parcelFileDescriptor =
+                      ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
+                  PdfRenderer renderer = new PdfRenderer(parcelFileDescriptor)
+              ) {
+                  final int pageCount = renderer.getPageCount();
 
-              PdfRenderer renderer = new PdfRenderer(parcelFileDescriptor);
+                  for (int i = 0; i < pageCount; i++) {
+                      PdfRenderer.Page page = renderer.openPage(i);
+                      try {
+                          Bitmap bitmap = Bitmap.createBitmap(dpi, dpi * page.getHeight() / page.getWidth(), Bitmap.Config.ARGB_8888);
+                          Canvas canvas = new Canvas(bitmap);
+                          canvas.drawColor(Color.WHITE);
 
-              final int pageCount = renderer.getPageCount();
-
-              for (int i = 0; i < pageCount; i++) {
-                  PdfRenderer.Page page = renderer.openPage(i);
-
-                  Bitmap bitmap = Bitmap.createBitmap(dpi, dpi * page.getHeight() / page.getWidth(), Bitmap.Config.ARGB_8888);
-                  Canvas canvas = new Canvas(bitmap);
-                  canvas.drawColor(Color.WHITE);
-
-                  page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_PRINT);
-                  File output = this.saveImage(bitmap, this.context.getCacheDir());
-                  page.close();
-
-                  files.pushString(output.getAbsolutePath());
+                          page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_PRINT);
+                          File output = this.saveImage(bitmap, this.context.getCacheDir());
+                          files.pushString(output.getAbsolutePath());
+                      } finally {
+                          page.close();
+                      }
+                  }
+              } finally {
+                  file.delete();
               }
 
               map.putArray("outputFiles", files);
-
               promise.resolve(map);
-
-              renderer.close();
-
-              file.delete();
 
           } catch (Exception e) {
               promise.reject(E_CONVERT_ERROR, e);
@@ -143,31 +146,32 @@ public class PdfToImageModule extends ReactContextBaseJavaModule {
               WritableArray files = Arguments.createArray();
               Uri path = Uri.parse(pdfUriString);
 
-              ParcelFileDescriptor parcelFileDescriptor = this.context.getContentResolver().openFileDescriptor(path, "r");
+              try (
+                  ParcelFileDescriptor parcelFileDescriptor =
+                      this.context.getContentResolver().openFileDescriptor(path, "r");
+                  PdfRenderer renderer = new PdfRenderer(parcelFileDescriptor)
+              ) {
+                  final int pageCount = renderer.getPageCount();
 
-              PdfRenderer renderer = new PdfRenderer(parcelFileDescriptor);
+                  for (int i = 0; i < pageCount; i++) {
+                      PdfRenderer.Page page = renderer.openPage(i);
+                      try {
+                          Bitmap bitmap = Bitmap.createBitmap(page.getWidth(), page.getHeight(), Bitmap.Config.ARGB_8888);
+                          Canvas canvas = new Canvas(bitmap);
+                          canvas.drawColor(Color.WHITE);
 
-              final int pageCount = renderer.getPageCount();
-
-              for (int i = 0; i < pageCount; i++) {
-                  PdfRenderer.Page page = renderer.openPage(i);
-
-                  Bitmap bitmap = Bitmap.createBitmap(page.getWidth(), page.getHeight(), Bitmap.Config.ARGB_8888);
-                  Canvas canvas = new Canvas(bitmap);
-                  canvas.drawColor(Color.WHITE);
-
-                  page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
-                  File output = this.saveImage(bitmap, this.context.getCacheDir());
-                  page.close();
-
-                  files.pushString(output.getAbsolutePath());
+                          page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
+                          File output = this.saveImage(bitmap, this.context.getCacheDir());
+                          files.pushString(output.getAbsolutePath());
+                      } finally {
+                          page.close();
+                      }
+                  }
               }
 
               map.putArray("outputFiles", files);
 
               promise.resolve(map);
-
-              renderer.close();
 
           } catch (Exception e) {
               promise.reject(E_CONVERT_ERROR, e);
