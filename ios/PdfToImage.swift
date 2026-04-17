@@ -164,7 +164,7 @@ class PdfToImage: NSObject {
 
     CFStreamCreatePairWithSocketToHost(nil, host as CFString, port, &readStream, &writeStream)
 
-    guard let outputStream = writeStream?.takeRetainedValue() else {
+    guard let outputStream = writeStream?.takeRetainedValue() as OutputStream? else {
       throw PdfToImageError.connectionFailed
     }
 
